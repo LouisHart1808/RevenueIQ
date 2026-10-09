@@ -32,7 +32,9 @@ jobs:
       - run: uv run playwright install --with-deps chromium
       - name: Browser acceptance
         run: |
-          uv run gunicorn --bind 127.0.0.1:8050 --workers 2 app.main:server > /tmp/revenueiq-server.log 2>&1 &
+          .venv/bin/gunicorn --bind 127.0.0.1:8050 --workers 2 app.main:server > /tmp/revenueiq-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 30); do
             curl -fsS http://127.0.0.1:8050/ >/dev/null && break
             sleep 1

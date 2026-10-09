@@ -18,7 +18,7 @@ The retrospective delivered population remains 96,478 orders, 93,358 customers, 
 The stronger methods reveal limitations: the selected forecast has approximately 14.79% WAPE on the three final months and its empirical band covers one of three outcomes. No product pair passes the declared later-period replication rule. On 94,563 single-seller reviewed orders, the customer/seller-clustered mean review difference is −2.038 points, with approximate 95% interval [−2.086, −1.990]. Association remains noncausal.
 
 ## Evidence and operation
-Published at [LouisHart1808/RevenueIQ](https://github.com/LouisHart1808/RevenueIQ). The [initial hosted run](https://github.com/LouisHart1808/RevenueIQ/actions/runs/37909490186) passed lint, unit tests, real-data refresh/publication, database tests, browser acceptance and Docker build. Subsequent revision status is available from the README badge.
+Published at [LouisHart1808/RevenueIQ](https://github.com/LouisHart1808/RevenueIQ). The [initial hosted run](https://github.com/LouisHart1808/RevenueIQ/actions/runs/37909490186) passed lint, unit tests, real-data refresh/publication, database tests, browser acceptance and Docker build. Its cleanup exposed a background-server cache lock; the workflow now stops that server on exit. Final revision status is available from the README badge.
 
 Local acceptance: 26 database-enabled tests passed; all nine browser views, category/state/seller chart clicks, filter resets, CSV export, cohort selection, scenario controls and 390-pixel mobile layout passed with no JavaScript errors. The recorded demo is in [walkthrough.webm](../reports/walkthrough.webm).
 
