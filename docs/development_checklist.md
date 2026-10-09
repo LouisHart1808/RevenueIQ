@@ -9,6 +9,6 @@ The initial platform delivered the source pipeline, dimensional model, nine view
 - [x] Customer/seller-clustered delivery evidence and chronological basket validation with multiplicity control.
 - [x] Updated architecture, methods, README and portfolio walkthrough.
 - [x] Final container/browser acceptance and recorded walkthrough.
-- [ ] GitHub publication and hosted CI verification.
+- [x] GitHub publication and hosted CI verification.
 
 The prior recommendation to add an untouched holdout is implemented as a locked retrospective protocol. Earlier exploration means these historical months cannot honestly be called never-viewed data. Source-supported limitations remain explicit; no improved business outcome is claimed.

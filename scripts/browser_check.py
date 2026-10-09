@@ -36,6 +36,7 @@ with sync_playwright() as p:
         page.get_by_role("button", name=f"{i + 1:02d} {name}").click()
         page.wait_for_timeout(700)
         page.wait_for_function("document.querySelector('h1').textContent === '" + name + "'")
+        page.wait_for_load_state("networkidle")
         assert page.get_by_text("This view could not load.", exact=False).count() == 0, name
         page.screenshot(path=str(ROOT / f"reports/dashboard-{i + 1:02d}.png"), full_page=True)
         results.append({"page": name, "passed": True})
@@ -91,6 +92,7 @@ with sync_playwright() as p:
     page.get_by_text("Acquisition cohort 2017-01-01", exact=True).wait_for()
     page.get_by_role("button", name="01 Executive Overview").click()
     page.get_by_text("R$ 13,221,498", exact=True).wait_for()
+    assert page.locator("#drill-feedback").inner_text() == "", "Reset left stale filter feedback"
     page.set_viewport_size({"width": 390, "height": 844})
     page.wait_for_timeout(1200)
     page.screenshot(path=str(ROOT / "reports/dashboard-mobile.png"), full_page=True)

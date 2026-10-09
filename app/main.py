@@ -939,30 +939,46 @@ def drill_value(kind, click):
     Output("state", "value", allow_duplicate=True),
     Output("category", "value", allow_duplicate=True),
     Output("seller", "value", allow_duplicate=True),
-    Output("drill-feedback", "children"),
     Input({"type": "drill", "kind": ALL, "name": ALL}, "clickData"),
     prevent_initial_call=True,
 )
 def drill(clicks):
     triggered = ctx.triggered_id
     if not triggered:
-        return no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update
     # Resolve the structured ID directly: Unicode graph titles can differ
     # between Dash's serialized trigger key and its input lookup key.
     payload = next(
         (item.get("value") for item in ctx.inputs_list[0] if item["id"] == triggered), None
     )
     if not payload:
-        return no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update
     kind = triggered["kind"]
     value = drill_value(kind, payload)
     if not value:
-        return no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update
     return (
         value if kind == "state" else no_update,
         value if kind == "category" else no_update,
         value if kind == "seller" else no_update,
-        f"Exploring {kind}: {str(value).replace('_', ' ')} · filters apply to all selected-basket views. Reset filters to return.",
+    )
+
+
+@app.callback(
+    Output("drill-feedback", "children"),
+    Input("state", "value"),
+    Input("category", "value"),
+    Input("seller", "value"),
+)
+def filter_feedback(state, category, seller):
+    selected = [
+        f"{kind}: {str(value).replace('_', ' ')}"
+        for kind, value in [("state", state), ("category", category), ("seller", seller)]
+        if value
+    ]
+    return (
+        "Exploring " + "; ".join(selected) + " · filters apply to all selected-basket views. Reset filters to return."
+        if selected else ""
     )
 
 

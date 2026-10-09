@@ -18,6 +18,10 @@ The retrospective delivered population remains 96,478 orders, 93,358 customers, 
 The stronger methods reveal limitations: the selected forecast has approximately 14.79% WAPE on the three final months and its empirical band covers one of three outcomes. No product pair passes the declared later-period replication rule. On 94,563 single-seller reviewed orders, the customer/seller-clustered mean review difference is −2.038 points, with approximate 95% interval [−2.086, −1.990]. Association remains noncausal.
 
 ## Evidence and operation
+Published at [LouisHart1808/RevenueIQ](https://github.com/LouisHart1808/RevenueIQ). The [initial hosted run](https://github.com/LouisHart1808/RevenueIQ/actions/runs/37909490186) passed lint, unit tests, real-data refresh/publication, database tests, browser acceptance and Docker build. Subsequent revision status is available from the README badge.
+
+Local acceptance: 26 database-enabled tests passed; all nine browser views, category/state/seller chart clicks, filter resets, CSV export, cohort selection, scenario controls and 390-pixel mobile layout passed with no JavaScript errors. The recorded demo is in [walkthrough.webm](../reports/walkthrough.webm).
+
 See `reports/analytics.json`, `reports/data_quality.json`, `reports/browser_validation.json`, `reports/performance.json` and the hosted CI workflow for current evidence. Regression tests include future-purchase exclusion, future-delivery exclusion, selection/calibration leakage, candidate leakage, clustered inference, mid-request promotion, immediate cache-version changes and failed-publication rollback in a disposable database.
 
 The local application runs at http://127.0.0.1:8050 . Use `docker compose run --rm app python scripts/refresh.py` for an atomic refresh. Use `docker compose run --rm -e RUN_INTEGRATION=1 app pytest -q` for database-enabled tests. Full setup and rollback instructions are in the README.
