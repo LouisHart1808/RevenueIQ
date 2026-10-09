@@ -6,6 +6,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from app.releases import current_release, pinned_release, identifier
 from app.customers import customer_cte, cohort_sql
+from app.filters import predicate
 
 ENGINE = create_engine(
     os.getenv("DATABASE_URL", "postgresql+psycopg2://localhost:55432/revenueiq"),
@@ -18,27 +19,6 @@ def query(sql, params=None):
     with ENGINE.connect() as conn:
         schema = identifier(current_release(ENGINE))
         return pd.read_sql(text(sql.replace("warehouse.", schema + ".")), conn, params=params or {})
-
-
-def predicate(start=None, end=None, state=None, category=None, seller=None):
-    conditions = ["1=1"]
-    params = {}
-    for key, value, clause in [
-        ("start", start, "o.purchase_date>=:start"),
-        ("end", end, "o.purchase_date<=:end"),
-        ("state", state, "o.state=:state"),
-    ]:
-        if value:
-            conditions.append(clause)
-            params[key] = value
-    if category or seller:
-        clauses = ["i.order_id=o.order_id"]
-        for key, value in [("category", category), ("seller_id", seller)]:
-            if value:
-                clauses.append(f"i.{key}=:{key}")
-                params[key] = value
-        conditions.append("exists(select 1 from warehouse.fact_order_items i where " + " and ".join(clauses) + ")")
-    return " and ".join(conditions), params
 
 
 @lru_cache(maxsize=64)
@@ -60,10 +40,8 @@ def snapshot(start=None, end=None, state=None, category=None, seller=None, relea
         f"select i.category,sum(i.price) as sales,count(*) as units,count(distinct i.order_id) as orders from warehouse.fact_order_items i join warehouse.fact_orders o using(order_id) where {where} and o.order_status='delivered' group by 1 order by 2 desc",
         params,
     )
-    out["products"] = query(
-        f"select i.category,i.product_id,sum(i.price) as sales,count(*) as units,avg(i.price) as average_price from warehouse.fact_order_items i join warehouse.fact_orders o using(order_id) where {where} and o.order_status='delivered' group by 1,2 order by 3 desc limit 200",
-        params,
-    )
+    products_sql, products_params = product_query(start, end, state, category, seller)
+    out["products"] = query(products_sql + product_order("sales") + " limit 200", products_params)
     out["regions"] = query(
         f"select state,sum(sales) as sales,count(*) as orders,avg(sales) as aov,avg(on_time::int) as on_time,avg(delivery_days) as delivery_days {eligible} group by 1 order by 2 desc",
         params,
@@ -137,12 +115,43 @@ def get_snapshot(*args):
     return snapshot(*args, release=current_release(ENGINE))
 
 
-def product_page(page=0, page_size=20, start=None, end=None, state=None, category=None, seller=None):
-    """Server-side pagination with bounded page size and stable ordering."""
+def product_query(start=None, end=None, state=None, category=None, seller=None, search=None):
+    """One aggregation shared by browsing, counting, and complete CSV exports."""
     where, params = predicate(start, end, state, category, seller)
-    page_size = max(1, min(int(page_size), 100))
-    params.update({"limit": page_size, "offset": max(0, int(page)) * page_size})
-    return query(
-        f"select i.category,i.product_id,sum(i.price) as sales,count(*) as units,avg(i.price) as average_price from warehouse.fact_order_items i join warehouse.fact_orders o using(order_id) where {where} and o.order_status='delivered' group by 1,2 order by 3 desc,i.product_id limit :limit offset :offset",
+    if search and search.strip():
+        # Escape LIKE wildcards so user input is a literal substring.
+        term = search.strip().replace("!", "!!").replace("%", "!%").replace("_", "!_")
+        params["product_search"] = "%" + term + "%"
+        where += " and (i.product_id ilike :product_search escape '!' or i.category ilike :product_search escape '!')"
+    return (
+        "select i.category,i.product_id,sum(i.price) as sales,count(*) as units,avg(i.price) as average_price "
+        "from warehouse.fact_order_items i join warehouse.fact_orders o using(order_id) "
+        f"where {where} and o.order_status='delivered' group by 1,2",
         params,
     )
+
+
+def product_order(sort):
+    # SQL identifiers are never interpolated from untrusted input.
+    column = sort if sort in {"sales", "units", "average_price", "category"} else "sales"
+    direction = "asc" if column == "category" else "desc"
+    return f" order by {column} {direction}, product_id asc"
+
+
+def product_page(
+    page=0, page_size=20, start=None, end=None, state=None, category=None, seller=None, *, search=None, sort="sales"
+):
+    sql, params = product_query(start, end, state, category, seller, search)
+    page_size = max(1, min(int(page_size), 100))
+    params.update({"limit": page_size, "offset": max(0, int(page)) * page_size})
+    return query(sql + product_order(sort) + " limit :limit offset :offset", params)
+
+
+def product_count(start=None, end=None, state=None, category=None, seller=None, *, search=None):
+    sql, params = product_query(start, end, state, category, seller, search)
+    return int(query("select count(*) as total from (" + sql + ") products", params).iloc[0].total)
+
+
+def export_products(start=None, end=None, state=None, category=None, seller=None, *, search=None, sort="sales"):
+    sql, params = product_query(start, end, state, category, seller, search)
+    return query(sql + product_order(sort), params)

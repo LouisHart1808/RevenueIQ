@@ -20,7 +20,7 @@ The stronger methods reveal limitations: the selected forecast has approximately
 ## Evidence and operation
 Published at [LouisHart1808/RevenueIQ](https://github.com/LouisHart1808/RevenueIQ). The [initial hosted run](https://github.com/LouisHart1808/RevenueIQ/actions/runs/37909490186) passed lint, unit tests, real-data refresh/publication, database tests, browser acceptance and Docker build. Its cleanup exposed a background-server cache lock; the workflow now stops that server on exit. Final revision status is available from the README badge.
 
-Local acceptance: 26 database-enabled tests passed; all nine browser views, category/state/seller chart clicks, filter resets, CSV export, cohort selection, scenario controls and 390-pixel mobile layout passed with no JavaScript errors. The recorded demo is in [walkthrough.webm](../reports/walkthrough.webm).
+Local acceptance: 29 database-enabled tests passed; all nine browser views, category/state/seller chart clicks, filter resets, CSV export, cohort selection, scenario controls and 390-pixel mobile layout passed with no JavaScript errors. The recorded demo is in [walkthrough.webm](../reports/walkthrough.webm).
 
 See `reports/analytics.json`, `reports/data_quality.json`, `reports/browser_validation.json`, `reports/performance.json` and the hosted CI workflow for current evidence. Regression tests include future-purchase exclusion, future-delivery exclusion, selection/calibration leakage, candidate leakage, clustered inference, mid-request promotion, immediate cache-version changes and failed-publication rollback in a disposable database.
 
@@ -30,3 +30,6 @@ The local application runs at http://127.0.0.1:8050 . Use `docker compose run --
 The previously explored historical dataset cannot provide genuinely never-viewed external validation. Three test months cannot establish forecast reliability. Cluster corrections do not remove confounding or review nonresponse, and association tests still face dependence and nonstationarity. The dataset has no costs, marketing ledger or status-event history.
 
 The application remains a local portfolio deployment without authentication or internet-facing hardening. Retention of old releases is manual. These limits are documented rather than represented as completed production capabilities or measured business uplift.
+
+## Maintainability and explorer enhancement
+Shared presentation helpers and basket predicates are extracted into focused modules. Product charts, pagination, counts and exports use a common aggregation. The explorer adds literal category/product-ID search, allowlisted sorting, total counts and page bounds; exports include every matching product. Category charts now support the advertised drill-down, and zero-value scenarios display an explanatory state. Regression coverage includes search escaping, sort safety, complete exports and browser-driven search/sort/download checks.

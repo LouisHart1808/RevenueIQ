@@ -5,9 +5,9 @@ import logging
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash.dash_table.Format import Format, Scheme, Group, Symbol
-from dash import Dash, Input, Output, State, dcc, html, dash_table, no_update
-from app.services import query, get_snapshot, product_page
+from dash import ALL, ctx, Dash, Input, Output, State, dcc, html, dash_table, no_update
+from app.services import query, get_snapshot, product_page, product_count, export_products
+from app.components import graph, table, table_column, note, money, num
 from app.releases import pinned_release, report_path, current_release
 from app.services import ENGINE
 from analytics.core import decompose, scenario, revenue_anomalies
@@ -33,126 +33,6 @@ app = Dash(
     title="RevenueIQ | Commerce Intelligence",
 )
 server = app.server
-
-
-def graph(fig, title=None, drill=None):
-    fig.update_layout(
-        font={"family": "Inter, Arial, sans-serif", "color": "#40516a", "size": 12},
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-        margin={"l": 35, "r": 22, "t": 35, "b": 45},
-        height=330,
-        legend={"orientation": "h", "y": 1.12},
-        title=None,
-    )
-    labels = {
-        "sales": "Merchandise value (BRL)",
-        "month": "Purchase month",
-        "orders": "Orders",
-        "customers": "Customers",
-        "category": "Product category",
-        "on_time": "On-time delivery rate",
-        "aov": "Average order value (BRL)",
-        "review_score": "Mean review score",
-        "delivery_days": "Delivery duration (days)",
-        "units": "Units",
-        "state": "Customer state",
-        "growth": "Month-over-month change (%)",
-    }
-    for axis in [fig.layout.xaxis, fig.layout.yaxis]:
-        original = axis.title.text
-        if original in labels:
-            axis.title.text = labels[original]
-        if original in ["sales", "aov", "average_price"]:
-            axis.tickprefix = "R$ "
-            axis.tickformat = ",.0f"
-        elif original in ["on_time", "retention", "support", "confidence"]:
-            axis.tickformat = ".0%"
-    return html.Div(
-        [
-            html.H3(title) if title else None,
-            dcc.Graph(
-                figure=fig,
-                responsive=True,
-                style={"height": "330px"},
-                config={"displaylogo": False},
-                **({"id": {"type": "drill", "kind": drill, "name": title}} if drill else {}),
-            ),
-        ],
-        className="panel",
-    )
-
-
-def table_column(name, series):
-    label = {
-        "sales": "Merchandise value (BRL)",
-        "aov": "AOV (BRL)",
-        "on_time": "On-time rate",
-        "monetary": "Observed value (BRL)",
-        "historical_value": "Observed value (BRL)",
-        "test_q": "Test BH q-value",
-        "orders": "Orders",
-    }.get(name, name.replace("_", " ").title())
-    column = {"name": label, "id": name}
-    if pd.api.types.is_numeric_dtype(series) and not pd.api.types.is_bool_dtype(series):
-        percent = name in ["on_time", "retention", "support", "confidence", "test_support", "test_confidence", "rate"]
-        currency = name in [
-            "sales",
-            "aov",
-            "average_price",
-            "monetary",
-            "historical_value",
-            "merchandise_value",
-            "cumulative_value_per_customer",
-            "prior_year_sales",
-        ]
-        column.update(
-            type="numeric",
-            format=Format(
-                precision=0
-                if name
-                in ["orders", "customers", "units", "age", "rows", "frequency", "exact_duplicates", "test_orders"]
-                else 2,
-                scheme=Scheme.percentage if percent else Scheme.fixed,
-                group=Group.yes,
-                **({"symbol": Symbol.yes, "symbol_prefix": "R$ "} if currency else {}),
-            ),
-        )
-    return column
-
-
-def table(df):
-    return dash_table.DataTable(
-        data=df.round(4).to_dict("records"),
-        columns=[table_column(c, df[c]) for c in df.columns],
-        page_size=10,
-        sort_action="native",
-        filter_action="native",
-        style_table={"overflowX": "auto"},
-        style_cell={
-            "fontFamily": "Arial",
-            "fontSize": 12,
-            "padding": "12px",
-            "textAlign": "left",
-            "maxWidth": 250,
-            "overflow": "hidden",
-            "textOverflow": "ellipsis",
-        },
-        style_header={"backgroundColor": "#f3f6fb", "fontWeight": "bold"},
-        style_data={"border": "1px solid #edf0f5"},
-    )
-
-
-def note(text):
-    return html.Div(text, className="note")
-
-
-def money(x):
-    return f"R$ {x:,.0f}"
-
-
-def num(x, fmt=",.0f"):
-    return "—" if pd.isna(x) else format(x, fmt)
 
 
 @pinned_release
@@ -278,7 +158,6 @@ def layout():
 
 
 app.layout = layout
-from dash import ALL, ctx  # noqa: E402
 
 
 @app.callback(Output("page", "data"), Input({"type": "nav", "index": ALL}, "n_clicks"), prevent_initial_call=True)
@@ -510,7 +389,11 @@ def render(page, start, end, state, category, seller=None, tick=0):
                 ),
                 html.Div(
                     [
-                        graph(px.bar(s["categories"].head(15), x="category", y="sales"), "Category contribution"),
+                        graph(
+                            px.bar(s["categories"].head(15), x="category", y="sales"),
+                            "Category contribution",
+                            drill="category",
+                        ),
                         graph(
                             px.scatter(s["products"], x="units", y="sales", hover_data=["product_id", "category"]),
                             "Product volume and value",
@@ -527,11 +410,37 @@ def render(page, start, end, state, category, seller=None, tick=0):
                     ),
                     "Selected top-five category trends",
                 ),
-                html.H3("Product explorer · server-side pages ordered by sales"),
+                html.H3("Product explorer"),
+                html.Div(
+                    [
+                        dcc.Input(
+                            id="product-search",
+                            type="search",
+                            placeholder="Search product ID or category",
+                            debounce=True,
+                            style={"width": "100%", "padding": "12px"},
+                        ),
+                        dcc.Dropdown(
+                            id="product-sort",
+                            options=[
+                                {"label": "Highest merchandise value", "value": "sales"},
+                                {"label": "Most units sold", "value": "units"},
+                                {"label": "Highest average price", "value": "average_price"},
+                                {"label": "Category A–Z", "value": "category"},
+                            ],
+                            value="sales",
+                            clearable=False,
+                        ),
+                    ],
+                    className="grid",
+                ),
+                html.Div(id="product-result-count", className="context"),
+                html.Button("Export matching products", id="product-export", className="button"),
+                dcc.Download(id="product-download"),
                 dash_table.DataTable(
                     id="product-table",
                     columns=[
-                        {"name": c.replace("_", " ").title(), "id": c}
+                        table_column(c, s["products"][c])
                         for c in ["category", "product_id", "sales", "units", "average_price"]
                     ],
                     page_current=0,
@@ -764,6 +673,11 @@ def render(page, start, end, state, category, seller=None, tick=0):
 
 @app.callback(
     Output("product-table", "data"),
+    Output("product-table", "page_count"),
+    Output("product-table", "page_current"),
+    Output("product-result-count", "children"),
+    Input("product-search", "value"),
+    Input("product-sort", "value"),
     Input("product-table", "page_current"),
     Input("product-table", "page_size"),
     State("dates", "start_date"),
@@ -773,8 +687,40 @@ def render(page, start, end, state, category, seller=None, tick=0):
     State("seller", "value"),
 )
 @pinned_release
-def paginate_products(page, size, start, end, state, category, seller):
-    return product_page(page, size, start, end, state, category, seller).round(2).to_dict("records")
+def paginate_products(search, sort, page, size, start, end, state, category, seller):
+    filters = (start, end, state, category, seller)
+    total = product_count(*filters, search=search)
+    size = max(1, min(int(size or 20), 100))
+    pages = max(1, (total + size - 1) // size)
+    page = 0 if ctx.triggered_id in ["product-search", "product-sort"] else min(max(0, page or 0), pages - 1)
+    rows = product_page(page, size, *filters, search=search, sort=sort)
+    summary = (
+        f"{total:,} matching products · Page {page + 1:,} of {pages:,}" if total else "No products match this search."
+    )
+    return rows.round(2).to_dict("records"), pages, page, summary
+
+
+@app.callback(
+    Output("product-download", "data"),
+    Input("product-export", "n_clicks"),
+    State("product-search", "value"),
+    State("product-sort", "value"),
+    State("dates", "start_date"),
+    State("dates", "end_date"),
+    State("state", "value"),
+    State("category", "value"),
+    State("seller", "value"),
+    prevent_initial_call=True,
+)
+@pinned_release
+def download_products(n, search, sort, start, end, state, category, seller):
+    if not n:
+        return no_update
+    return dcc.send_data_frame(
+        export_products(start, end, state, category, seller, search=search, sort=sort).to_csv,
+        "revenueiq_products.csv",
+        index=False,
+    )
 
 
 @app.callback(
@@ -844,6 +790,8 @@ def cohort(selected, start=None, end=None, state=None, category=None, seller=Non
     State("baseline", "data"),
 )
 def simulate(c, f, a, baseline):
+    if baseline is None or baseline <= 0:
+        return note("A positive merchandise-value baseline is needed to calculate a scenario.")
     projected = scenario(baseline, c / 100, f / 100, a / 100)
     sensitivity = pd.DataFrame(
         {
@@ -901,9 +849,12 @@ def export(n, page, start, end, state, category, seller=None):
     if not n:
         return no_update
     key = {0: "monthly", 1: "monthly", 2: "segments", 3: "products", 4: "operations", 5: "regions"}.get(page, "kpi")
-    return dcc.send_data_frame(
-        get_snapshot(start, end, state, category, seller)[key].to_csv, f"revenueiq_{key}.csv", index=False
+    frame = (
+        export_products(start, end, state, category, seller)
+        if page == 3
+        else get_snapshot(start, end, state, category, seller)[key]
     )
+    return dcc.send_data_frame(frame.to_csv, f"revenueiq_{key}.csv", index=False)
 
 
 @app.callback(
@@ -948,9 +899,7 @@ def drill(clicks):
         return no_update, no_update, no_update
     # Resolve the structured ID directly: Unicode graph titles can differ
     # between Dash's serialized trigger key and its input lookup key.
-    payload = next(
-        (item.get("value") for item in ctx.inputs_list[0] if item["id"] == triggered), None
-    )
+    payload = next((item.get("value") for item in ctx.inputs_list[0] if item["id"] == triggered), None)
     if not payload:
         return no_update, no_update, no_update
     kind = triggered["kind"]
@@ -978,7 +927,8 @@ def filter_feedback(state, category, seller):
     ]
     return (
         "Exploring " + "; ".join(selected) + " · filters apply to all selected-basket views. Reset filters to return."
-        if selected else ""
+        if selected
+        else ""
     )
 
 

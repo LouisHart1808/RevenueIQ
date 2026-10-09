@@ -44,3 +44,6 @@ Unit tests cover model-selection leakage, frozen interval calibration, future-on
 
 ## Deployment boundary
 Local bind addresses; no customer names or raw review text displayed. No authentication, tenancy or internet-facing hardening is provided. The application is intended for local portfolio use. Production work would add access control, independent external validation data, cluster-aware association research, stronger uncertainty calibration and safe release retention.
+
+## Explorer and presentation structure
+Shared chart/table formatting lives in `app/components.py`, while `app/filters.py` defines parameterized whole-basket filters. Product browsing, counting and full CSV export share one aggregation. Search treats wildcard characters literally, sorting uses an allowlist, and stable product-ID tie-breaking prevents overlapping pages. The explorer clamps page bounds and resets pagination when search or sorting changes.

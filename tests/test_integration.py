@@ -48,3 +48,20 @@ def test_server_pagination_and_seller_filter():
     seller = query("select seller_id from warehouse.dim_sellers limit 1").iloc[0].seller_id
     s = get_snapshot(None, None, None, None, seller)
     assert s["kpi"].iloc[0].sales == pytest.approx(s["categories"].sales.sum(), abs=0.01)
+
+
+def test_product_search_sort_count_and_complete_export():
+    from app.services import product_count, export_products
+
+    all_products = export_products()
+    assert len(all_products) == product_count() > 200
+    assert all_products.sales.is_monotonic_decreasing
+    selected = all_products.iloc[0].product_id
+    found = export_products(search=selected)
+    assert len(found) == product_count(search=selected) == 1
+    assert found.iloc[0].product_id == selected
+    assert product_count(search="%_!") == 0
+    ranked = export_products(state="SP", search="health_beauty", sort="units")
+    assert ranked.units.is_monotonic_decreasing
+    assert set(ranked.category) == {"health_beauty"}
+    assert len(ranked) == product_count(state="SP", search="health_beauty")

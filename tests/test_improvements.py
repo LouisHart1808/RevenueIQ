@@ -74,3 +74,19 @@ def test_failed_dbt_cannot_publish(tmp_path):
     (tmp_path / "dbt_run_results.json").write_text(json.dumps({"results": [{"status": "fail"}]}))
     with pytest.raises(ValueError, match="dbt"):
         publish(None, "release_test", tmp_path)
+
+
+def test_product_search_is_literal_and_sort_is_allowlisted():
+    from app.services import product_query, product_order
+
+    sql, params = product_query(search="x%_' OR 1=1 --")
+    assert "OR 1=1" not in sql
+    assert params["product_search"] == "%x!%!_' OR 1=1 --%"
+    assert product_order("sales; drop table orders") == " order by sales desc, product_id asc"
+    assert product_order("category") == " order by category asc, product_id asc"
+
+
+def test_zero_value_scenario_has_explanatory_empty_state():
+    from app.main import simulate
+
+    assert "positive merchandise-value baseline" in str(simulate(1, 1, 1, 0))

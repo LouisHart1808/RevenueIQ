@@ -39,6 +39,7 @@
   ],
   "javascript_errors": [],
   "csv_download": true,
+  "product_search_sort_and_complete_export": true,
   "state_category_filters": true,
   "chart_drill_down": true,
   "scenario_slider": true,

@@ -73,6 +73,31 @@ with sync_playwright() as p:
     page.get_by_role("button", name="01 Executive Overview").click()
     page.get_by_text("R$ 13,221,498", exact=True).wait_for()
     page.wait_for_load_state("networkidle")
+    page.get_by_role("button", name="04 Product Intelligence").click()
+    page.get_by_text("Product explorer", exact=True).wait_for()
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#product-result-count")).to_contain_text("matching products")
+    page.locator("#product-search").fill("health_beauty")
+    page.locator("#product-search").press("Enter")
+    page.wait_for_load_state("networkidle")
+    page.locator("#product-sort input").fill("Most units sold")
+    page.locator("#product-sort input").press("Enter")
+    page.wait_for_load_state("networkidle")
+    with page.expect_download() as products_download:
+        page.get_by_role("button", name="Export matching products", exact=True).click()
+    import csv
+    with open(products_download.value.path(), newline="") as exported:
+        products = list(csv.DictReader(exported))
+    assert len(products) > 200, "Product export was truncated"
+    assert {row["category"] for row in products} == {"health_beauty"}
+    units = [int(row["units"]) for row in products]
+    assert units == sorted(units, reverse=True)
+    page.locator("#product-search").fill("no_such_product_12345")
+    page.locator("#product-search").press("Enter")
+    page.get_by_text("No products match this search.", exact=True).wait_for()
+    page.get_by_role("button", name="01 Executive Overview").click()
+    page.get_by_text("R$ 13,221,498", exact=True).wait_for()
+    page.wait_for_load_state("networkidle")
     with page.expect_download() as download:
         page.get_by_role("button", name="Export CSV").click()
     assert download.value.suggested_filename == "revenueiq_monthly.csv"
@@ -113,6 +138,7 @@ with sync_playwright() as p:
                 "navigation": results,
                 "javascript_errors": errors,
                 "csv_download": True,
+                "product_search_sort_and_complete_export": True,
                 "state_category_filters": True,
                 "chart_drill_down": True,
                 "scenario_slider": True,
