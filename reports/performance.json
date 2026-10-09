@@ -1,0 +1,36 @@
+{
+  "query_snapshots": [
+    {
+      "filters": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "cold_seconds": 2.7543439180000178,
+      "cached_seconds": 0.00047583299999587325
+    },
+    {
+      "filters": [
+        "2018-01-01",
+        "2018-06-30",
+        "SP",
+        null
+      ],
+      "cold_seconds": 1.0090010419999658,
+      "cached_seconds": 0.0004294999999956417
+    },
+    {
+      "filters": [
+        "2017-01-01",
+        "2018-07-31",
+        null,
+        "health_beauty"
+      ],
+      "cold_seconds": 1.0635892500000068,
+      "cached_seconds": 0.0004107500000145592
+    }
+  ],
+  "overview_callback_seconds": 2.775010043000009,
+  "scope": "Local PostgreSQL; includes query conversion, excludes browser paint. Release-keyed process-local cache; cached calls include the live publication lookup."
+}

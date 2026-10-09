@@ -1,0 +1,14 @@
+sources:
+- name: raw
+  schema: "{{ env_var('RAW_SCHEMA', 'raw') }}"
+  tables:
+  - name: customers
+  - name: orders
+  - name: order_items
+  - name: order_payments
+  - name: order_reviews
+  - name: products
+  - name: sellers
+  - name: geolocation
+  - name: category_translation
+version: 2

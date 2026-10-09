@@ -1,0 +1,47 @@
+{
+  "navigation": [
+    {
+      "page": "Executive Overview",
+      "passed": true
+    },
+    {
+      "page": "Revenue Intelligence",
+      "passed": true
+    },
+    {
+      "page": "Customer Intelligence",
+      "passed": true
+    },
+    {
+      "page": "Product Intelligence",
+      "passed": true
+    },
+    {
+      "page": "Operations Intelligence",
+      "passed": true
+    },
+    {
+      "page": "Geographic Intelligence",
+      "passed": true
+    },
+    {
+      "page": "Advanced Analytics",
+      "passed": true
+    },
+    {
+      "page": "Scenario Planning",
+      "passed": true
+    },
+    {
+      "page": "Data Quality & Methodology",
+      "passed": true
+    }
+  ],
+  "javascript_errors": [],
+  "csv_download": true,
+  "state_category_filters": true,
+  "chart_drill_down": true,
+  "scenario_slider": true,
+  "cohort_selection": true,
+  "responsive_width": 390
+}

@@ -1,0 +1,11 @@
+name: revenueiq
+version: '1.0'
+config-version: 2
+profile: revenueiq
+model-paths: [models]
+test-paths: [tests]
+models:
+  revenueiq:
+    +materialized: table
+on-run-start:
+  - "{{ guard_release() }}"

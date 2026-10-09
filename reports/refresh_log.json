@@ -1,0 +1,26 @@
+[
+  {
+    "stage": "acquire",
+    "started_at_utc": "2026-10-09T09:01:05.292992+00:00",
+    "seconds": 0.627,
+    "returncode": 0
+  },
+  {
+    "stage": "validate_and_load",
+    "started_at_utc": "2026-10-09T09:01:05.920275+00:00",
+    "seconds": 59.689,
+    "returncode": 0
+  },
+  {
+    "stage": "transform_and_test",
+    "started_at_utc": "2026-10-09T09:02:05.610024+00:00",
+    "seconds": 8.547,
+    "returncode": 0
+  },
+  {
+    "stage": "analyze",
+    "started_at_utc": "2026-10-09T09:02:14.741476+00:00",
+    "seconds": 6.138,
+    "returncode": 0
+  }
+]

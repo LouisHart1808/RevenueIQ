@@ -1,0 +1,10 @@
+.venv
+.local
+.git
+data/raw
+__pycache__
+dbt/target
+dbt/logs
+reports/releases
+dbt/.user.yml
+docs/PROJECT_BRIEF.txt

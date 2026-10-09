@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: revenueiq
+      POSTGRES_USER: revenueiq
+      POSTGRES_PASSWORD: ${PGPASSWORD:-revenueiq_local}
+    ports: ["127.0.0.1:55433:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revenueiq"]
+      interval: 5s
+      retries: 10
+  app:
+    build: .
+    ports: ["127.0.0.1:8050:8050"]
+    environment:
+      DATABASE_URL: postgresql+psycopg2://revenueiq:${PGPASSWORD:-revenueiq_local}@db:5432/revenueiq
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: revenueiq
+      PGPASSWORD: ${PGPASSWORD:-revenueiq_local}
+    volumes: ["./data:/workspace/data", "./reports:/workspace/reports"]
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  pgdata:

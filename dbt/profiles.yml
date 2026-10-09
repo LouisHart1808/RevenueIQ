@@ -1,0 +1,12 @@
+revenueiq:
+  target: local
+  outputs:
+    local:
+      type: postgres
+      host: "{{ env_var('PGHOST', '127.0.0.1') }}"
+      port: "{{ env_var('PGPORT', '55432') | int }}"
+      user: "{{ env_var('PGUSER', env_var('USER', 'revenueiq')) }}"
+      password: "{{ env_var('PGPASSWORD', '') }}"
+      dbname: revenueiq
+      schema: "{{ env_var('WAREHOUSE_SCHEMA', 'warehouse') }}"
+      threads: 4

@@ -1,0 +1,1 @@
+select date_trunc('month',purchase_date)::date as month, count(*) as orders,count(distinct customer_unique_id) as customers,sum(sales) as sales,sum(freight) as freight,sum(payment_total) as payments,sum(sales)/nullif(count(*),0) as aov from {{ ref('fact_orders') }} where order_status='delivered' group by 1

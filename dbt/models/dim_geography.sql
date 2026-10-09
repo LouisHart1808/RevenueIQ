@@ -1,0 +1,1 @@
+select geolocation_state as state, avg(geolocation_lat) as latitude, avg(geolocation_lng) as longitude from (select distinct geolocation_zip_code_prefix, geolocation_state, geolocation_lat, geolocation_lng from {{ ref('stg_geolocation') }} where geolocation_lat between -34 and 6 and geolocation_lng between -74 and -34) g group by 1

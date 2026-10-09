@@ -1,0 +1,182 @@
+{
+  "statistics": {
+    "supported": true,
+    "late_n": 6381,
+    "on_time_n": 89443,
+    "late_mean": 2.2718225983388183,
+    "on_time_mean": 4.290589164793965,
+    "mean_difference": -2.0187665664551466,
+    "ci95": [
+      -2.0580440431443914,
+      -1.9763808909673708
+    ],
+    "p_value": 0.0,
+    "p_value_note": "Below floating-point precision",
+    "rank_biserial": -0.6379797602422275,
+    "clustered": {
+      "supported": true,
+      "orders": 94563,
+      "late_n": 6369,
+      "on_time_n": 88194,
+      "customer_clusters": 91622,
+      "seller_clusters": 2944,
+      "mean_difference": -2.0381452396802198,
+      "standard_error": 0.024338771586617,
+      "ci95": [
+        -2.085849231989989,
+        -1.9904412473704505
+      ],
+      "p_value": 0.0,
+      "method": "OLS difference of means, two-way customer/seller clustered covariance with finite-sample correction and normal critical value",
+      "limitations": "Single-seller reviewed orders only; cross-cluster independence and many clusters assumed. Nonresponse and confounding remain; no causal claim."
+    }
+  },
+  "forecast": {
+    "supported": true,
+    "folds": 4,
+    "selection_end_index": 15,
+    "holdout_start_index": 16,
+    "scores": {
+      "Last month": {
+        "MAE": 110979.16,
+        "RMSE": 128069.36113885028,
+        "WAPE": 0.12069602032665569,
+        "sMAPE": 0.12909415369474178
+      },
+      "Three month mean": {
+        "MAE": 97511.52333333335,
+        "RMSE": 103863.63652849909,
+        "WAPE": 0.10604921502670557,
+        "sMAPE": 0.11073583287897887
+      },
+      "Seasonal naive": {
+        "MAE": 658020.5449999999,
+        "RMSE": 664262.2109489614,
+        "WAPE": 0.7156340079946275,
+        "sMAPE": 1.1384196435278007
+      },
+      "Damped trend": {
+        "MAE": 50858.67838421388,
+        "RMSE": 67883.80021870433,
+        "WAPE": 0.05531164661949075,
+        "sMAPE": 0.056137034247943196
+      }
+    },
+    "selected": "Damped trend",
+    "next": 987900.9488631985,
+    "interval": [
+      874013.2896052778,
+      1101788.6081211192
+    ],
+    "actual": [
+      977544.69,
+      856077.86,
+      867953.46
+    ],
+    "predicted": [
+      1047005.6860815093,
+      1045590.5158476644,
+      1008663.3711116286
+    ],
+    "holdout_scores": {
+      "MAE": 133227.85434693415,
+      "RMSE": 142055.33638704932,
+      "WAPE": 0.14794459291959827,
+      "sMAPE": 0.13929731310805724
+    },
+    "holdout_baseline": {
+      "MAE": 45784.3433333333,
+      "RMSE": 70501.31341085992,
+      "WAPE": 0.050841815848076,
+      "sMAPE": 0.05012535927722999
+    },
+    "holdout_months": 3,
+    "lower": [
+      933118.0268235886,
+      931702.8565897438,
+      894775.7118537079
+    ],
+    "upper": [
+      1160893.34533943,
+      1159478.1751055853,
+      1122551.0303695493
+    ],
+    "interval_width_frozen": 113887.65925792074,
+    "holdout_coverage": 0.3333333333333333,
+    "nominal_coverage": 0.95,
+    "caveat": "Final months are excluded from model selection and interval calibration. Fixed selected method is refitted using only information available before each test month. Historical dataset was explored in v1: this is a retrospective locked holdout, not never-viewed external evidence. Few calibration/test months cannot establish 95% coverage.",
+    "development_months": [
+      "2018-01-01",
+      "2018-02-01",
+      "2018-03-01",
+      "2018-04-01"
+    ],
+    "test_months": [
+      "2018-05-01",
+      "2018-06-01",
+      "2018-07-01"
+    ]
+  },
+  "basket": {
+    "split_date": "2018-01-01",
+    "training_orders": 43695,
+    "test_orders": 52783,
+    "total_orders": 96478,
+    "multi_product_orders": 3197,
+    "minimum_pair_orders": 20,
+    "candidate_pairs": 1,
+    "replicated_pairs": 0,
+    "rules": [
+      {
+        "antecedent": "35afc973633aaeb6b877ff57b2793310",
+        "consequent": "99a4788cb24856965c36a24e339b6058",
+        "orders": 25,
+        "support": 0.0005721478430026318,
+        "confidence": 0.2631578947368421,
+        "lift": 34.42719823510873,
+        "test_orders": 4,
+        "test_support": 7.578197525718508e-05,
+        "test_confidence": 0.06896551724137931,
+        "test_lift": 29.83776144714528,
+        "test_q": 1.0463371521806556e-05,
+        "replicated": false
+      },
+      {
+        "antecedent": "99a4788cb24856965c36a24e339b6058",
+        "consequent": "35afc973633aaeb6b877ff57b2793310",
+        "orders": 25,
+        "support": 0.0005721478430026318,
+        "confidence": 0.0748502994011976,
+        "lift": 34.42719823510873,
+        "test_orders": 4,
+        "test_support": 7.578197525718508e-05,
+        "test_confidence": 0.03278688524590164,
+        "test_lift": 29.83776144714528,
+        "test_q": 1.0463371521806556e-05,
+        "replicated": false
+      }
+    ],
+    "limitations": "Candidates selected before 2018. Replication requires >=5 later co-purchases, lift>1 and BH q<=0.05. BH assumes independence or suitable positive dependence; overlapping products may violate this. Customer dependence, selection and nonstationarity remain; not causal campaign evidence."
+  },
+  "forecast_months": [
+    "2017-01-01",
+    "2017-02-01",
+    "2017-03-01",
+    "2017-04-01",
+    "2017-05-01",
+    "2017-06-01",
+    "2017-07-01",
+    "2017-08-01",
+    "2017-09-01",
+    "2017-10-01",
+    "2017-11-01",
+    "2017-12-01",
+    "2018-01-01",
+    "2018-02-01",
+    "2018-03-01",
+    "2018-04-01",
+    "2018-05-01",
+    "2018-06-01",
+    "2018-07-01"
+  ]
+}

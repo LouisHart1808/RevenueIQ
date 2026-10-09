@@ -1,0 +1,12 @@
+# Dataset evaluation
+Reviewed 9 October 2026.
+
+|Candidate|Access / license|Structure and coverage|Decision|
+|---|---|---|---|
+|[Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)|Publisher public download succeeded without credentials; publisher API metadata: CC BY-NC-SA 4.0|Nine CSV entities, 99,441 orders, 112,650 items, 99,224 review rows, 103,886 payments; purchase dates September 2016–October 2018|Selected. Persistent customer IDs, fulfillment dates, reviews, products, sellers, payments and geography support the broadest requested scope. Sample completeness is unknown; repeat activity sparse; no costs/refund ledger.|
+|[UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail)|Direct XLSX download; CC BY 4.0|541,909 transactions, December 2010–December 2011, invoice/product/quantity/price/customer/country|Strong transaction/RFM alternative, but lacks Olist's seller, delivery and review entities. Not downloaded or blended into Olist.|
+|[Instacart competition data](https://www.kaggle.com/c/instacart-market-basket-analysis/data)|Competition page returned 404 in this research environment; terms and current acquisition route unverified; no redistribution permission assumed|Order/product basket focus; no verified price or delivery/review fields in this project|Not acquired. Basket analysis alone cannot satisfy this project's financial and operational scope. Exact schema/count/coverage intentionally not asserted without inspecting source files.|
+
+Olist source metadata is retained in `source_metadata.json`; per-file SHA-256 digests are in `data_manifest.json`. License applies to the dataset and applicable derivatives; the repository's code license does not relicense source data. No large raw files are committed. Generated analytical outputs and screenshots retain Olist attribution and must respect noncommercial/share-alike conditions. This fictional application is not an Olist official product.
+
+The 2016 launch and terminal extraction tail are structurally incomplete for trend inference. Forecasting conservatively uses January 2017–July 2018. Customer acquisition is first *observed* purchase, not guaranteed actual first-ever purchase. Geographic rows repeat ZIP codes; never join raw geography directly to order facts. Reviews can repeat order/review identifiers; raw reviews are preserved and aggregated by order for dashboards.

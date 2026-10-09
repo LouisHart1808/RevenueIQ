@@ -1,0 +1,38 @@
+models:
+- columns:
+  - data_tests:
+    - unique
+    - not_null
+    name: order_id
+  name: fact_orders
+- columns:
+  - data_tests:
+    - unique
+    - not_null
+    name: customer_id
+  name: dim_customers
+- columns:
+  - data_tests:
+    - unique
+    - not_null
+    name: product_id
+  name: dim_products
+- columns:
+  - data_tests:
+    - unique
+    - not_null
+    name: seller_id
+  name: dim_sellers
+- columns:
+  - data_tests:
+    - unique
+    - not_null
+    name: customer_unique_id
+  name: mart_customer
+- columns:
+  - data_tests:
+    - unique
+    - not_null
+    name: review_row_id
+  name: fact_reviews
+version: 2

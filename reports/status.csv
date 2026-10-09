@@ -1,0 +1,9 @@
+order_status,orders
+shipped,1107
+unavailable,609
+invoiced,314
+created,5
+approved,2
+processing,301
+delivered,96478
+canceled,625

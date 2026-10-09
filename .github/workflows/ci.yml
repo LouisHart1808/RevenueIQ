@@ -1,0 +1,50 @@
+name: RevenueIQ checks
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: revenueiq
+          POSTGRES_USER: revenueiq
+          POSTGRES_PASSWORD: revenueiq
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: revenueiq
+      PGPASSWORD: revenueiq
+      DATABASE_URL: postgresql+psycopg2://revenueiq:revenueiq@localhost:5432/revenueiq
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+      - run: uv run python scripts/refresh.py
+      - run: RUN_INTEGRATION=1 uv run pytest -q
+      - run: uv run playwright install --with-deps chromium
+      - name: Browser acceptance
+        run: |
+          uv run gunicorn --bind 127.0.0.1:8050 --workers 2 app.main:server > /tmp/revenueiq-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8050/ >/dev/null && break
+            sleep 1
+          done
+          uv run python scripts/browser_check.py
+      - run: docker build -t revenueiq .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-evidence
+          path: |
+            reports/browser_validation.json
+            reports/refresh_log.json
+            reports/dashboard-*.png
+            reports/releases/*/*.log
